@@ -11,7 +11,7 @@
         </el-form-item>
         <el-form-item label="验证码" prop="verificationCode">
           <el-input v-model="forgetUserForm.verificationCode" autocomplete="off" placeholder="请输入验证码"></el-input>
-          <el-button type="primary" @click="getVerificationCode" :disabled="sendingCode">{{ sendingCode ? '已发送' : '获取验证码' }}</el-button>
+          <el-button type="primary" @click="getVerificationCode" :disabled="sendingCode">{{ sendingCode ? `已发送 (${countdown})` : '获取验证码' }}</el-button>
         </el-form-item>
         <el-form-item label="新密码" prop="newPassword">
           <el-input v-model="forgetUserForm.newPassword" type="password" autocomplete="off" placeholder="请输入新密码"></el-input>
@@ -31,6 +31,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: "ForgetPassword",
   data() {
@@ -43,6 +45,7 @@ export default {
         confirmPassword: ''
       },
       sendingCode: false, // 控制验证码按钮状态
+      countdown: 0, // 倒计时秒数
       rules: {
         username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
         email: [
@@ -60,48 +63,73 @@ export default {
   },
   methods: {
     // 获取验证码
-    getVerificationCode() {
+    async getVerificationCode() {
       if (!this.forgetUserForm.email) {
         this.$message.error('请先输入邮箱号');
         return;
       }
 
-      this.sendingCode = true;
-      this.$request.post('/api/get-verification-code', { email: this.forgetUserForm.email }).then(res => {
-        if (res.code === '200') {
+      this.sendingCode = true; // 开始发送验证码
+      this.countdown = 60; // 设置倒计时60秒
+      try {
+        const response = await axios.post('/api/user/get-verification-email', {
+          email: this.forgetUserForm.email
+        });
+        console.log('data',response.data); // 调试信息
+        if (response.data.data === 200) {
           this.$message.success('验证码已发送，请检查您的邮箱');
+          this.startCountdown(); // 启动倒计时
         } else {
-          this.$message.error(res.msg);
+           this.startCountdown(); // 启动倒计时
+          this.$message.error(response.data.msg);
         }
-      }).catch(error => {
+      } catch (error) {
         console.error('请求失败:', error);
         this.$message.error('请求失败，请稍后重试');
-      }).finally(() => {
-        this.sendingCode = false;
-      });
+      }
     },
+
+    // 倒计时逻辑
+    startCountdown() {
+    console.log('开始倒计时'); // 调试信息
+      const interval = setInterval(() => {
+        if (this.countdown <= 0) {
+          clearInterval(interval);
+          this.sendingCode = false; // 恢复按钮状态
+        } else {
+          this.countdown--; // 倒计时减一
+        }
+      }, 1000);
+    },
+
     // 提交表单
-    submitForm() {
-      this.$refs.forgetPasswordForm.validate((valid) => {
+    async submitForm() {
+      this.$refs.forgetPasswordForm.validate(async (valid) => {
         if (valid) {
-          // 校验通过，发送请求到后端
-          this.$request.post('/api/reset-password', this.forgetUserForm).then(res => {
-            if (res.code === '200') {
+          try {
+            const response = await axios.post('/api/user/reset-password', {
+              email: this.forgetUserForm.email,
+              code: this.forgetUserForm.verificationCode,
+              newPassword: this.forgetUserForm.newPassword
+            });
+
+            if (response.data.data=== 200) {
               this.$message.success('密码已重置');
               this.$router.push('/login'); // 跳转到登录页面
             } else {
-              this.$message.error(res.msg);
+              this.$message.error(response.data.msg);
             }
-          }).catch(error => {
+          } catch (error) {
             console.error('请求失败:', error);
             this.$message.error('请求失败，请稍后重试');
-          });
+          }
         } else {
           console.log("表单验证失败");
           return false;
         }
       });
     },
+
     // 校验确认密码是否一致
     validateConfirmPassword(rule, value, callback) {
       if (value !== this.forgetUserForm.newPassword) {
