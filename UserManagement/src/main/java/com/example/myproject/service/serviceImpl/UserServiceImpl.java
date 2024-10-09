@@ -1,12 +1,16 @@
 package com.example.myproject.service.serviceImpl;
 
 
+import com.example.myproject.dto.ClassCourseInfoDTO;
+import com.example.myproject.model.Class;
+import com.example.myproject.model.ClassUser;
+import com.example.myproject.model.Course;
 import com.example.myproject.model.User;
 import com.example.myproject.model.VerificationToken;
-import com.example.myproject.repository.UserRepository;
-import com.example.myproject.repository.VerificationTokenRepository;
+import com.example.myproject.repository.*;
 import com.example.myproject.service.EmailService;
 import com.example.myproject.service.UserService;
+import com.example.myproject.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,7 +20,9 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.annotation.Resource;
 
 /**
@@ -228,5 +234,62 @@ public class UserServiceImpl implements UserService {
         }
         return false;
     }
+    // 获取用户个人信息
+
+
+    @Autowired
+    private CourseRepository courseRepository;
+    @Autowired
+    private ClassUserRepository classUserRepository;
+    @Autowired
+    private ClassRepository classRepository;
+    public Result getUserProfile(Long  userId) {
+        Optional<User> user = userRepository.findById(userId);
+        return Result.success(user);
+    }
+
+    // 获取用户课程信息
+    public Result getStudentCourses(Long userId) {
+
+//        //根据用户 ID 查找班级用户信息，同时获取班级和课程信息
+//        List<ClassUser> classUsers = classUserRepository.findByStudentIdWithFetch(userId);
+//
+//        // 获取不重复的课程 ID 列表
+//        List<Long> courseIds = classUsers.stream()
+//                .map(classUser -> classUser.getClassEntity().getCourse().getId()) // 获取课程 ID
+//                .distinct() // 去重
+//                .collect(Collectors.toList());
+//
+//        // 根据课程 ID 查询课程信息
+//        List<Course> courses = courseRepository.findAllById(courseIds); // 批量查询课程信息
+//
+//
+//        // 返回结果
+//        return Result.success(courses);
+        List<ClassCourseInfoDTO> courseInfoList = classUserRepository.findByStudentIdWithFetch(userId);
+// 返回结果
+        return Result.success(courseInfoList);
+    }
+    public Result getTeacherCourses(Long userId) {
+
+        List<ClassCourseInfoDTO> courseInfoList = classUserRepository.findByTeacherIdWithFetch(userId);
+// 返回结果
+        return Result.success(courseInfoList);
+
+    }
+
+//    // 获取用户通知信息t
+//    public Result getUserNotifications(long userId) {
+//        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+//        List<Notification> notifications = notificationRepository.findByUserId(userId);
+//        return Result.success(notifications);
+//    }
+//
+//     获取今日课程
+//    public Result getTodaysCourses(long userId) {
+//        Optional<User> user = userRepository.findById(userId);
+//        List<Course> todaysCourses = courseRepository.findTodaysCoursesByUserId(userId);
+//        return Result.success(todaysCourses);
+//    }
 
 }

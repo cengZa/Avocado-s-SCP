@@ -24,6 +24,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -37,6 +38,8 @@ import java.util.List;
 public class UserController {
     @Resource
     private UserService userService;
+
+
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -230,6 +233,37 @@ public class UserController {
     }
 
 
+    // 个人信息接口
+    @GetMapping("/profile/{userId}")
+    public ResponseEntity<Result> getUserProfile(@PathVariable Long userId) {
+        Result result = userService.getUserProfile(userId);
+        return ResponseEntity.ok(result);
+    }
 
+    // 课程信息接口
+    @GetMapping("student/courses/{userId}")
+    public ResponseEntity<Result> getUserStuCourses(@PathVariable Long userId) {
+        Result result = userService.getStudentCourses(userId);
+        return ResponseEntity.ok(result);
+    }
+    @GetMapping("teacher/courses/{userId}")
+    public ResponseEntity<Result> getUserTcCourses(@PathVariable Long userId) {
+        Result result = userService.getTeacherCourses(userId);
+        return ResponseEntity.ok(result);
+    }
+
+    // 通知接口
+//    @GetMapping("/notifications/{username}")
+//    public ResponseEntity<Result> getUserNotifications(@PathVariable Long userId) {
+//        Result result = userDetailsService.getUserNotifications(username);
+//        return ResponseEntity.ok(result);
+//    }
+//
+    // 今日课程接口
+//    @GetMapping("/todayCourses/{userId")
+//    public ResponseEntity<Result> getTodaysCourses(@PathVariable String username) {
+//        Result result = userDetailsService.getTodaysCourses(username);
+//        return ResponseEntity.ok(result);
+//    }
 
 }
