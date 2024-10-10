@@ -1,0 +1,76 @@
+其中个人信息、课程信息、通知、教学日历的信息都时个人的， 请帮我写接口文档，要求如下POST（post请求） /api/login  （接口）
+{（此处是请求体）}
+{（此处是响应体）}
+
+应完整地给出该接口需要怎样的请求与请求体，响应体
+并给出边界接口案例，错误接口案例。
+
+
+{
+  "username": "string",  // 用户名，字符串类型，必填
+  "password": "string"   // 密码，字符串类型，必填
+}
+{
+  "token": "string",     // 登录成功后返回的访问令牌，字符串类型
+  "user": {
+    "user_id": "string",      // 用户ID，字符串类型
+    "user_name": "string",// 用户名，字符串类型
+    "email": "string"    // 用户邮箱，字符串类型
+  }
+}
+
+
+
+{
+  "status": "success",
+  "user": {
+    "avatar": "avatar_url",
+    "user_name": "话来话去",
+    "role_name": "student",
+    "email": "hualaihuaqu12@163.com"
+  },
+  "notifications": [
+    {
+      "id": 1,
+      "notification_title": "Notification title 1"
+      "read":ture//是否已读
+    },
+    {
+      "id": 2,
+      "notification_title": "Notification title 2"
+      "read":ture//是否已读
+    }
+    // 显示最新的，超过三条只返回三条
+  ],
+  "courses": [
+    {
+      "image": "course_image_url",
+      "course_name": "实训",
+      "course_id": "123",
+      "course_code": "001",
+    },
+    {
+      "image": "course_image_url",
+      "course_name": "ui设计",
+      "course_id": "456",
+      "course_code": "002",
+    }
+    // 所有课程
+  ],
+  "todays_courses": [
+    {
+      "course_name": "实训",
+      "location": "yf101",
+      "time": "08:00 - 10:00"
+    },
+    {
+      "course_name": "ui设计",
+      "location": "sy102",
+      "time": "14:10 - 16:00"
+    }
+    // 今日所有课程
+  ]
+}
+
+
+
